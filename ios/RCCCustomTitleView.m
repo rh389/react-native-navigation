@@ -39,15 +39,25 @@
         self.subView.frame = self.bounds;
     }
     else {
-        
         CGFloat superViewWidth = self.superview.frame.size.width;
-        CGFloat paddingLeftFromCenter = (superViewWidth/2) - self.frame.origin.x;
-        CGFloat paddingRightFromCenter = self.frame.size.width - paddingLeftFromCenter;;
-        CGRect reactViewFrame = self.subView.bounds;
-        CGFloat minPadding = MIN(paddingLeftFromCenter, paddingRightFromCenter);
-        
-        reactViewFrame.size.width = minPadding*2;
-        reactViewFrame.origin.x = paddingLeftFromCenter - minPadding;
+        CGFloat navBarWidth = self.superview.superview.frame.size.width;
+        CGFloat leftButtonWidth = self.superview.frame.origin.x;
+        CGFloat rightButtonWidth = navBarWidth - superViewWidth - leftButtonWidth;
+        if (rightButtonWidth == 0) {
+            return;
+        }
+
+        CGFloat padLeft = 0;
+        CGFloat padRight = 0;
+        if (leftButtonWidth > rightButtonWidth) {
+            padRight = leftButtonWidth - rightButtonWidth;
+        } else {
+            padLeft = rightButtonWidth - leftButtonWidth;
+        }
+
+        CGRect reactViewFrame = self.subView.frame;
+        reactViewFrame.size.width = navBarWidth - leftButtonWidth - rightButtonWidth - padLeft - padRight;
+        reactViewFrame.origin.x = padLeft;
         self.subView.frame = reactViewFrame;
     }
 }
