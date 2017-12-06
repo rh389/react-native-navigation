@@ -41,7 +41,12 @@
     else {
         CGFloat superViewWidth = self.superview.frame.size.width;
         CGFloat navBarWidth = self.superview.superview.frame.size.width;
-        CGFloat leftButtonWidth = self.superview.frame.origin.x;
+        CGFloat leftButtonWidth;
+        if ([[UIDevice currentDevice].systemVersion intValue] >= 11) {
+            leftButtonWidth = self.superview.frame.origin.x;
+        } else {
+            leftButtonWidth = self.frame.origin.x;
+        }
         CGFloat rightButtonWidth = navBarWidth - superViewWidth - leftButtonWidth;
         if (rightButtonWidth == 0) {
             return;
