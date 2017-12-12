@@ -39,13 +39,21 @@
         self.subView.frame = self.bounds;
     }
     else {
-        CGFloat superViewWidth = self.superview.frame.size.width;
-        CGFloat navBarWidth = self.superview.superview.frame.size.width;
+        CGFloat superViewWidth;
+        CGFloat navBarWidth;
         CGFloat leftButtonWidth;
-        if ([[UIDevice currentDevice].systemVersion intValue] >= 11) {
+        if (@available(iOS 11.2, *)) {
             leftButtonWidth = self.superview.frame.origin.x;
+            navBarWidth = self.superview.superview.superview.frame.size.width;
+            superViewWidth = self.superview.superview.frame.size.width;
+        } else if (@available(iOS 11.0, *)) {
+            leftButtonWidth = self.superview.frame.origin.x;
+            navBarWidth = self.superview.superview.frame.size.width;
+            superViewWidth = self.superview.frame.size.width;
         } else {
             leftButtonWidth = self.frame.origin.x;
+            navBarWidth = self.superview.superview.frame.size.width;
+            superViewWidth = self.superview.frame.size.width;
         }
         CGFloat rightButtonWidth = navBarWidth - superViewWidth - leftButtonWidth;
         if (rightButtonWidth == 0) {
