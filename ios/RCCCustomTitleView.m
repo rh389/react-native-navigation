@@ -7,48 +7,81 @@
 //
 
 #import "RCCCustomTitleView.h"
+#import <React/RCTRootViewDelegate.h>
+#import <React/RCTRootView.h>
 
-@interface RCCCustomTitleView ()
-@property (nonatomic, strong) UIView *subView;
+@interface RCCCustomTitleView () <RCTRootViewDelegate>
+@property (nonatomic, strong) RCTRootView *subView;
 @property (nonatomic, strong) NSString *subViewAlign;
 @end
 
 @implementation RCCCustomTitleView
 
-
--(instancetype)initWithFrame:(CGRect)frame subView:(UIView*)subView alignment:(NSString*)alignment {
+-(instancetype)initWithFrame:(CGRect)frame subView:(RCTRootView*)subView alignment:(NSString*)alignment {
     self = [super initWithFrame:frame];
-    
+
     if (self) {
         self.backgroundColor = [UIColor clearColor];
         self.subView = subView;
         self.subViewAlign = alignment;
-        
-        subView.frame = self.bounds;
+        if ([alignment isEqualToString:@"center"]) {
+            if (@available(iOS 11, *)) {
+                subView.sizeFlexibility = RCTRootViewSizeFlexibilityWidthAndHeight;
+                subView.delegate = self;
+                self.frame = CGRectZero;
+            } else {
+                subView.frame = self.bounds;
+            }
+        } else {
+            subView.frame = self.bounds;
+        }
         [self addSubview:subView];
     }
-    
+
     return self;
 }
 
+- (void)rootViewDidChangeIntrinsicSize:(RCTRootView *)rootView {
+    if (@available(iOS 11, *)) {
+        if ([self.subViewAlign isEqualToString:@"center"]) {
+            CGSize size = rootView.intrinsicContentSize;
+            rootView.frame = CGRectMake(0, 0, size.width, size.height);
+            self.frame = rootView.frame;
+        }
+    }
+}
 
 -(void)layoutSubviews {
     [super layoutSubviews];
-    
+
     if ([self.subViewAlign isEqualToString:@"fill"]) {
         self.subView.frame = self.bounds;
     }
     else {
-        
-        CGFloat superViewWidth = self.superview.frame.size.width;
-        CGFloat paddingLeftFromCenter = (superViewWidth/2) - self.frame.origin.x;
-        CGFloat paddingRightFromCenter = self.frame.size.width - paddingLeftFromCenter;;
-        CGRect reactViewFrame = self.subView.bounds;
-        CGFloat minPadding = MIN(paddingLeftFromCenter, paddingRightFromCenter);
-        
-        reactViewFrame.size.width = minPadding*2;
-        reactViewFrame.origin.x = paddingLeftFromCenter - minPadding;
-        self.subView.frame = reactViewFrame;
+        if (@available(iOS 11, *)) {
+            // No action required, but @available cannot be negated
+        } else {
+            CGFloat leftButtonWidth = self.frame.origin.x;
+            CGFloat navBarWidth = self.superview.superview.frame.size.width;
+            CGFloat superViewWidth = self.superview.frame.size.width;
+            CGFloat rightButtonWidth = navBarWidth - superViewWidth - leftButtonWidth;
+            if (rightButtonWidth == 0) {
+                return;
+            }
+
+            CGFloat padLeft = 0;
+            CGFloat padRight = 0;
+            if (leftButtonWidth > rightButtonWidth) {
+                padRight = leftButtonWidth - rightButtonWidth;
+            } else {
+                padLeft = rightButtonWidth - leftButtonWidth;
+            }
+
+            CGRect reactViewFrame = self.subView.frame;
+            reactViewFrame.size.width = navBarWidth - leftButtonWidth - rightButtonWidth - padLeft - padRight;
+            reactViewFrame.origin.x = padLeft;
+            self.subView.frame = reactViewFrame;
+        }
     }
 }
 
