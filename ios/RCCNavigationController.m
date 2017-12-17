@@ -19,6 +19,10 @@
 {
   BOOL _transitioning;
   NSMutableArray *_queuedViewControllers;
+
+  /// @@@ Tom
+  RCCViewController *_rccViewController;
+  NSString *_action;
 }
 
 NSString const *CALLBACK_ASSOCIATED_KEY = @"RCCNavigationController.CALLBACK_ASSOCIATED_KEY";
@@ -67,10 +71,38 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
   
 
   [self setRotation:props];
+
+  // notification
+  // @@@ Tom
+#if true
+  [[NSNotificationCenter defaultCenter] addObserver:self
+                                           selector:@selector(didAddReactComponent)
+                                               name:@"DidAddReactComponent"
+                                             object:nil];
+#endif
   
   return self;
 }
 
+- (void)didAddReactComponent
+{
+  // RCTAssertMainQueue();
+  // Clear the reactTag so it can be re-assigned
+  // self.reactTag = nil;
+  // NSLog(@"Hi, there");
+
+
+  if ([_action isEqualToString:@"push"]) {
+
+    if (_rccViewController == nil) {
+      return;
+    }
+
+    // NSLog(@"Hi, its push!!");
+    [self pushViewController:_rccViewController animated:TRUE];
+    _action = @"";
+  }
+}
 
 - (void)performAction:(NSString*)performAction actionParams:(NSDictionary*)actionParams bridge:(RCTBridge *)bridge
 {
@@ -121,7 +153,11 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     
     RCCViewController *viewController = [[RCCViewController alloc] initWithComponent:component passProps:passProps navigatorStyle:navigatorStyle globalProps:nil bridge:bridge];
     viewController.controllerId = passProps[@"screenInstanceID"];
-    
+
+    /// @@@ Tom
+    _rccViewController = viewController;
+    /// @@@
+
     [self processTitleView:viewController
                      props:actionParams
                      style:navigatorStyle];
@@ -296,7 +332,18 @@ NSString const *CALLBACK_ASSOCIATED_ID = @"RCCNavigationController.CALLBACK_ASSO
     }
     else
     {
-      [self setViewControllers:@[viewController] animated:animated];
+      /// @@@Tom
+#if false
+      dispatch_time_t time = dispatch_time ( DISPATCH_TIME_NOW , 300ull * NSEC_PER_MSEC) ;
+
+      dispatch_after ( time , dispatch_get_main_queue ( ) , ^ {
+
+        // [self pushViewController:viewController animated:animated];
+
+      } ) ;
+#endif
+
+      _action = [performAction copy];
     }
     return;
   }

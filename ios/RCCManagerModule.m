@@ -44,6 +44,12 @@ RCT_ENUM_CONVERTER(UIModalPresentationStyle,
 
 @end
 
+/// @@@ Tom
+
+RCCViewController *_rccViewController;
+NSString *_action;
+NSString *_animationType;
+
 @implementation RCCManagerModule
 
 RCT_EXPORT_MODULE(RCCManager);
@@ -357,6 +363,21 @@ RCT_EXPORT_METHOD(
             controller.modalPresentationStyle = modalPresentationStyle;
         }
     }
+
+    // notification
+    // @@@ Tom
+#if true
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(didAddReactComponent)
+                                                 name:@"DidAddReactComponent"
+
+                                               object:nil];
+    _action = @"modal";
+    _rccViewController = (RCCViewController *)controller;
+    _animationType = [animationType copy];
+#endif
+
+    return;
     
     [[RCCManagerModule lastModalPresenterViewController] presentViewController:controller
                                                                       animated:![animationType isEqualToString:@"none"]
